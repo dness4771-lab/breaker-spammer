@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BREAKERS | WEBHOOK SPAMMER</title>
+    <title>BREAKERS | WEBHOOK SPAMMER (FIXED)</title>
     <style>
         * {
             margin: 0;
@@ -36,7 +36,6 @@
             position: relative;
         }
 
-        /* hareketli ışık efekti */
         .bg-animation {
             position: fixed;
             top: 0;
@@ -64,7 +63,6 @@
             100% { transform: translate(30%, 20%); }
         }
 
-        /* ana kart - glassmorph, net kontrast */
         .spammer {
             position: relative;
             z-index: 10;
@@ -98,7 +96,6 @@
             97% { opacity: 0.8; text-shadow: 0 0 12px rgba(255,217,102,0.8);}
         }
 
-        /* dropzone */
         .drop-area {
             background: rgba(0, 0, 0, 0.4);
             border: 1.5px solid var(--border-light);
@@ -132,7 +129,6 @@
             border-color: var(--border-light);
         }
 
-        /* form elemanları */
         input, textarea {
             width: 100%;
             background: var(--input-bg);
@@ -171,7 +167,6 @@
             border-radius: 30px;
             backdrop-filter: blur(4px);
         }
-        /* custom checkbox */
         .row label input {
             width: 18px;
             height: 18px;
@@ -180,7 +175,6 @@
             transform: scale(1);
         }
 
-        /* hız paneli */
         .speed-panel {
             background: rgba(0, 0, 0, 0.5);
             border-radius: 28px;
@@ -239,7 +233,6 @@
             margin: 0;
         }
 
-        /* butonlar */
         .btn-group {
             display: flex;
             gap: 15px;
@@ -332,12 +325,11 @@
 <div class="spammer">
     <h1>BREAKERS</h1>
 
-    <!-- fotoğraf alanı -->
     <div class="drop-area" id="dropZone">
         <img id="avatarPreview" alt="avatar">
-        <div class="drop-text">📸 SÜRÜKLE / BIRAK VEYA LİNK</div>
+        <div class="drop-text">📸 SÜRÜKLE / BIRAK (sadece http/https URL geçerli)</div>
         <div class="avatar-input">
-            <input type="text" id="avatarUrl" placeholder="Profil fotoğrafı URL">
+            <input type="text" id="avatarUrl" placeholder="Profil fotoğrafı URL (http/https)">
         </div>
     </div>
 
@@ -358,18 +350,18 @@
         <div class="dual-slider">
             <div>
                 <label>⏱️ Aralık (ms)</label>
-                <input type="range" id="intervalSlider" min="1" max="100" value="50" step="1">
+                <input type="range" id="intervalSlider" min="10" max="200" value="50" step="1">
             </div>
             <div>
                 <label>📦 Toplu mesaj</label>
-                <input type="range" id="batchSlider" min="1" max="50" value="1" step="1">
+                <input type="range" id="batchSlider" min="1" max="30" value="1" step="1">
             </div>
         </div>
         <div class="batch-control">
             <span>🔁 Her aralıkta gönderilecek mesaj sayısı:</span>
-            <input type="number" id="batchSize" min="1" max="50" value="1" step="1">
+            <input type="number" id="batchSize" min="1" max="30" value="1" step="1">
         </div>
-        <div style="font-size:0.65rem; text-align:center; margin-top: 8px; opacity:0.8;">🔥 Maks teorik: (1000/ms) × toplu sayı</div>
+        <div style="font-size:0.65rem; text-align:center; margin-top: 8px; opacity:0.8;">⚠️ Çok yüksek hız Discord rate limitine takılabilir</div>
     </div>
 
     <div class="btn-group">
@@ -382,6 +374,7 @@
 
     <div class="stats">
         <span>📬 Gönderilen: <span id="msgCount" class="counter">0</span></span>
+        <span>❌ Hata: <span id="errorCount" class="counter" style="color:#ff8888;">0</span></span>
         <span>⚡ Anlık hız: <span id="liveRate">0</span> msg/sn</span>
     </div>
 
@@ -404,6 +397,7 @@
     const stopBtn = document.getElementById('stopBtn');
     const testBtn = document.getElementById('testBtn');
     const msgCountSpan = document.getElementById('msgCount');
+    const errorCountSpan = document.getElementById('errorCount');
     const liveRateSpan = document.getElementById('liveRate');
     const effectiveRateSpan = document.getElementById('effectiveRate');
     const intervalSlider = document.getElementById('intervalSlider');
@@ -415,18 +409,19 @@
     let isSpamming = false;
     let spamIntervalId = null;
     let sentTotal = 0;
+    let errorTotal = 0;
     let startTime = 0;
     let rateUpdateInterval = null;
     let currentIntervalMs = 50;
     let currentBatch = 1;
-    let droppedImageData = "";
+    let pendingRateLimit = false;
 
     function showAlert(msg, isError = true) {
         const alertDiv = document.getElementById('alert');
         alertDiv.innerText = msg;
         alertDiv.style.backgroundColor = isError ? '#e74c3c' : '#2ecc71';
         alertDiv.style.right = '20px';
-        setTimeout(() => { alertDiv.style.right = '-350px'; }, 3200);
+        setTimeout(() => { alertDiv.style.right = '-350px'; }, 3500);
     }
 
     function isValidWebhook(url) {
@@ -446,19 +441,31 @@
 
     function buildMessage() {
         let msg = messageInput.value;
-        if (!msg) return null;
+        if (!msg || msg.trim() === "") return null;
         if (everyoneCheck.checked) msg = "@everyone " + msg;
         if (hereCheck.checked) msg = "@here " + msg;
         return msg;
     }
 
+    // Avatar URL kontrolü – sadece http/https kabul edilir, data URL reddedilir
+    function getValidAvatarUrl() {
+        let avatar = avatarUrlInput.value.trim();
+        if (avatar && (avatar.startsWith('http://') || avatar.startsWith('https://'))) {
+            return avatar;
+        }
+        // eğer drop edilen data URL varsa onu kullanma (Discord desteklemez)
+        return "";
+    }
+
     async function sendSingleWebhook() {
+        if (pendingRateLimit) return false;
         const url = webhookInput.value.trim();
         if (!url) return false;
         const username = usernameInput.value.trim();
-        const avatar = droppedImageData || avatarUrlInput.value.trim() || "";
+        const avatar = getValidAvatarUrl();
         const content = buildMessage();
         if (!content) return false;
+
         try {
             const res = await fetch(url, {
                 method: 'POST',
@@ -466,20 +473,42 @@
                 body: JSON.stringify({
                     content: content,
                     username: username || "BREAKERS",
-                    avatar_url: avatar
+                    avatar_url: avatar || undefined
                 })
             });
+
             if (res.ok) {
                 sentTotal++;
                 msgCountSpan.innerText = sentTotal;
                 return true;
+            } else if (res.status === 429) {
+                // Rate limit – spam'i durdur
+                const retryAfter = res.headers.get('retry-after');
+                const waitSec = retryAfter ? parseFloat(retryAfter) : 5;
+                showAlert(`⚠️ Discord rate limit! ${waitSec} saniye bekleniyor...`, true);
+                pendingRateLimit = true;
+                if (isSpamming) stopSpam();
+                setTimeout(() => {
+                    pendingRateLimit = false;
+                    showAlert("Rate limit bitti, tekrar başlatabilirsiniz.", false);
+                }, waitSec * 1000);
+                return false;
+            } else {
+                console.warn(`Webhook hatası ${res.status}: ${await res.text()}`);
+                errorTotal++;
+                errorCountSpan.innerText = errorTotal;
+                return false;
             }
-        } catch(e) {}
-        return false;
+        } catch(e) {
+            console.error("İstek hatası:", e);
+            errorTotal++;
+            errorCountSpan.innerText = errorTotal;
+            return false;
+        }
     }
 
     async function sendBatch() {
-        if (!isSpamming) return;
+        if (!isSpamming || pendingRateLimit) return;
         const promises = [];
         for (let i = 0; i < currentBatch; i++) {
             promises.push(sendSingleWebhook());
@@ -494,9 +523,12 @@
         if (!isValidWebhook(url)) { showAlert("Geçersiz webhook URL'si!"); return; }
         if (!msg) { showAlert("Mesaj yazmalısın!"); return; }
         if (isSpamming) { showAlert("Zaten spam aktif!"); return; }
+        if (pendingRateLimit) { showAlert("Rate limit aktif, lütfen bekleyin."); return; }
 
         sentTotal = 0;
+        errorTotal = 0;
         msgCountSpan.innerText = "0";
+        errorCountSpan.innerText = "0";
         startTime = Date.now();
         isSpamming = true;
 
@@ -508,7 +540,7 @@
 
         if (spamIntervalId) clearInterval(spamIntervalId);
         spamIntervalId = setInterval(() => {
-            if (isSpamming) sendBatch();
+            if (isSpamming && !pendingRateLimit) sendBatch();
         }, currentIntervalMs);
 
         if (rateUpdateInterval) clearInterval(rateUpdateInterval);
@@ -521,7 +553,7 @@
             }
         }, 800);
 
-        showAlert(`🔥 SALDIRI BAŞLADI! Hedef: ${rate} msg/sn`, false);
+        showAlert(`🔥 SPAM BAŞLADI! Hedef: ${rate} msg/sn`, false);
     }
 
     function stopSpam() {
@@ -529,7 +561,7 @@
         if (spamIntervalId) { clearInterval(spamIntervalId); spamIntervalId = null; }
         if (rateUpdateInterval) { clearInterval(rateUpdateInterval); rateUpdateInterval = null; }
         isSpamming = false;
-        showAlert(`⛔ DURDURULDU. Toplam: ${sentTotal} mesaj`, true);
+        showAlert(`⛔ DURDURULDU. Gönderilen: ${sentTotal}, Hata: ${errorTotal}`, true);
     }
 
     async function testWebhook() {
@@ -539,7 +571,8 @@
         const msg = buildMessage();
         if (!msg) { showAlert("Test için mesaj boş olamaz!"); return; }
         const username = usernameInput.value.trim() || "BREAKERS";
-        const avatar = droppedImageData || avatarUrlInput.value.trim() || "";
+        // Testte avatar kullanma (data URL sorun yaratmasın)
+        const avatar = getValidAvatarUrl();
         try {
             const res = await fetch(url, {
                 method: 'POST',
@@ -547,7 +580,7 @@
                 body: JSON.stringify({
                     content: "✅ **TEST MESAJI** — Webhook çalışıyor!",
                     username: username,
-                    avatar_url: avatar
+                    avatar_url: avatar || undefined
                 })
             });
             if (res.ok) showAlert("Webhook çalışıyor! Test mesajı gönderildi.", false);
@@ -561,9 +594,9 @@
         batchSizeInput.value = currentBatch;
         const rate = Math.round((1000 / currentIntervalMs) * currentBatch);
         effectiveRateSpan.innerText = rate + " msg/sn";
-        if (isSpamming && spamIntervalId) {
+        if (isSpamming && spamIntervalId && !pendingRateLimit) {
             clearInterval(spamIntervalId);
-            spamIntervalId = setInterval(() => { if (isSpamming) sendBatch(); }, currentIntervalMs);
+            spamIntervalId = setInterval(() => { if (isSpamming && !pendingRateLimit) sendBatch(); }, currentIntervalMs);
             showAlert(`⚡ Hız güncellendi: ${rate} msg/sn`, false);
         }
     }
@@ -573,7 +606,7 @@
     batchSizeInput.addEventListener('input', (e) => {
         let val = parseInt(e.target.value);
         if (isNaN(val)) val = 1;
-        val = Math.min(50, Math.max(1, val));
+        val = Math.min(30, Math.max(1, val));
         batchSlider.value = val;
         batchSizeInput.value = val;
         updateSpeed();
@@ -583,7 +616,7 @@
     stopBtn.onclick = stopSpam;
     testBtn.onclick = testWebhook;
 
-    // drag & drop avatar
+    // Drag & drop – sadece http/https linkler için önizleme yap, data URL'i kaydetme
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = "#ffd966"; dropZone.style.background = "rgba(0,0,0,0.6)"; });
     dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = "rgba(255,255,255,0.2)"; dropZone.style.background = "rgba(0,0,0,0.4)"; });
     dropZone.addEventListener('drop', (e) => {
@@ -591,18 +624,24 @@
         dropZone.style.borderColor = "rgba(255,255,255,0.2)";
         const file = e.dataTransfer.files[0];
         if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                droppedImageData = ev.target.result;
-                avatarPreview.src = droppedImageData;
-                avatarPreview.style.display = 'block';
-                showAlert("Profil fotoğrafı yüklendi", false);
-            };
-            reader.readAsDataURL(file);
+            showAlert("Discord data URL desteklemez. Lütfen doğrudan bir resim URL'si (http/https) girin.", true);
+            // Önizleme yapma ve avatarı temizle
+            avatarPreview.style.display = 'none';
+            avatarUrlInput.value = "";
         }
     });
 
-    // ilk hız göstergesi
+    // Avatar URL input değişince önizleme göster
+    avatarUrlInput.addEventListener('input', () => {
+        const url = avatarUrlInput.value.trim();
+        if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+            avatarPreview.src = url;
+            avatarPreview.style.display = 'block';
+        } else {
+            avatarPreview.style.display = 'none';
+        }
+    });
+
     updateSpeed();
 </script>
 </body>
